@@ -27,6 +27,9 @@ import NewBill from './pages/billing/NewBill';
 import BillList from './pages/billing/BillList';
 import BillDetails from './pages/billing/BillDetails';
 
+// Report pages
+import SalesReport from './pages/reports/SalesReport';
+
 // Error pages
 import NotFound from './pages/errors/NotFound';
 
@@ -79,6 +82,9 @@ function App() {
           <Route path="/billing/new" element={<NewBill />} />
           <Route path="/billing" element={<BillList />} />
           <Route path="/billing/:id" element={<BillDetails />} />
+          
+          {/* Reports routes */}
+          <Route path="/reports/sales" element={<SalesReport />} />
         </Route>
 
         {/* 404 route */}

@@ -70,6 +70,12 @@ const Sidebar = ({ open, mobileOpen, handleDrawerClose, handleDrawerToggle }) =>
       icon: <ReceiptIcon />,
       path: '/billing',
       roles: ['admin', 'staff', 'cashier']
+    },
+    {
+      text: 'Sales Report',
+      icon: <AssessmentIcon />,
+      path: '/reports/sales',
+      roles: ['admin']
     }
   ];
 
