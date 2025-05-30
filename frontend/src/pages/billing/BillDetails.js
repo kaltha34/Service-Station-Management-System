@@ -53,56 +53,39 @@ const BillDetails = () => {
     severity: 'success'
   });
   
-  // Fetch bill data
+  // Fetch bill data from localStorage
   useEffect(() => {
     const fetchBill = async () => {
       try {
         setLoading(true);
         
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Get bills from localStorage
+        const storedBills = JSON.parse(localStorage.getItem('bills') || '[]');
         
-        // Mock data for a specific bill
-        const mockBill = {
-          id: 'BILL-250530-0001',
-          billNumber: 'BILL-250530-0001',
-          customer: {
-            name: 'John Doe',
-            phone: '555-1234',
-            email: 'john.doe@example.com',
-            vehicleInfo: {
-              licensePlate: 'ABC123',
-              make: 'Toyota',
-              model: 'Camry',
-              year: 2020
-            }
-          },
-          services: [
-            { id: '1', name: 'Full Body Wash', price: 150, quantity: 1 },
-            { id: '2', name: 'Oil Change', price: 200, quantity: 1 }
-          ],
-          products: [
-            { id: '1', name: 'Engine Oil 5W-30', price: 80, quantity: 4 },
-            { id: '2', name: 'Oil Filter', price: 40, quantity: 1 }
-          ],
-          subtotal: 650,
-          taxRate: 0.18,
-          taxAmount: 117,
-          discount: 0,
-          total: 767,
-          paymentMethod: 'cash',
-          paymentStatus: 'completed',
-          notes: 'Customer requested premium oil',
-          createdBy: {
-            id: '1',
-            name: 'Admin User'
-          },
-          createdAt: '2025-05-30T10:15:00'
-        };
+        // Find the bill with the matching ID
+        const foundBill = storedBills.find(bill => bill._id === id || bill.id === id);
         
-        setBill(mockBill);
-        setPaymentStatus(mockBill.paymentStatus);
-        setPaymentMethod(mockBill.paymentMethod);
+        if (foundBill) {
+          console.log('Found bill in localStorage:', foundBill);
+          setBill(foundBill);
+        } else {
+          console.error('Bill not found with ID:', id);
+          setSnackbar({
+            open: true,
+            message: 'Bill not found',
+            severity: 'error'
+          });
+          // Navigate back to bills list after a short delay
+          setTimeout(() => {
+            navigate('/billing');
+          }, 2000);
+        }
+        
+        // Set payment status and method from the found bill
+        if (foundBill) {
+          setPaymentStatus(foundBill.paymentStatus || 'completed');
+          setPaymentMethod(foundBill.paymentMethod || 'cash');
+        }
         setLoading(false);
       } catch (error) {
         console.error('Error fetching bill:', error);
@@ -130,21 +113,37 @@ const BillDetails = () => {
   
   const handleUpdatePayment = async () => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Get all bills from localStorage
+      const storedBills = JSON.parse(localStorage.getItem('bills') || '[]');
       
-      // Update bill data
-      setBill({
-        ...bill,
-        paymentStatus,
-        paymentMethod
-      });
+      // Find the bill index
+      const billIndex = storedBills.findIndex(b => b._id === id || b.id === id);
       
-      setSnackbar({
-        open: true,
-        message: 'Payment status updated successfully',
-        severity: 'success'
-      });
+      if (billIndex !== -1) {
+        // Update the bill with new payment information
+        const updatedBill = {
+          ...storedBills[billIndex],
+          paymentStatus,
+          paymentMethod
+        };
+        
+        // Update the bill in the array
+        storedBills[billIndex] = updatedBill;
+        
+        // Save back to localStorage
+        localStorage.setItem('bills', JSON.stringify(storedBills));
+        
+        // Update state
+        setBill(updatedBill);
+        
+        setSnackbar({
+          open: true,
+          message: 'Payment status updated successfully',
+          severity: 'success'
+        });
+      } else {
+        throw new Error('Bill not found in localStorage');
+      }
       
       handleClosePaymentDialog();
     } catch (error) {
@@ -271,12 +270,12 @@ const BillDetails = () => {
                 Date: {formatDate(bill.createdAt)}
               </Typography>
               <Typography variant="body2">
-                Created by: {bill.createdBy.name}
+                Created by: {bill.createdBy?.name || 'System'}
               </Typography>
               <Box sx={{ mt: 1, display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
                 <Chip 
-                  label={bill.paymentStatus.charAt(0).toUpperCase() + bill.paymentStatus.slice(1)} 
-                  color={getPaymentStatusColor(bill.paymentStatus)}
+                  label={bill.paymentStatus ? (bill.paymentStatus.charAt(0).toUpperCase() + bill.paymentStatus.slice(1)) : 'Completed'} 
+                  color={getPaymentStatusColor(bill.paymentStatus || 'completed')}
                   size="small"
                 />
               </Box>
@@ -292,14 +291,14 @@ const BillDetails = () => {
                 Customer Information
               </Typography>
               <Typography variant="body1">
-                {bill.customer.name}
+                {bill.customer?.name || 'Customer'}
               </Typography>
-              {bill.customer.phone && (
+              {bill.customer?.phone && (
                 <Typography variant="body2">
                   Phone: {bill.customer.phone}
                 </Typography>
               )}
-              {bill.customer.email && (
+              {bill.customer?.email && (
                 <Typography variant="body2">
                   Email: {bill.customer.email}
                 </Typography>
@@ -311,9 +310,9 @@ const BillDetails = () => {
                 Vehicle Information
               </Typography>
               <Typography variant="body1">
-                License Plate: {bill.customer.vehicleInfo.licensePlate}
+                License Plate: {bill.customer?.vehicleInfo?.licensePlate || 'N/A'}
               </Typography>
-              {bill.customer.vehicleInfo.make && (
+              {bill.customer?.vehicleInfo?.make && (
                 <Typography variant="body2">
                   {bill.customer.vehicleInfo.make} {bill.customer.vehicleInfo.model} {bill.customer.vehicleInfo.year}
                 </Typography>
@@ -322,7 +321,7 @@ const BillDetails = () => {
                 variant="text" 
                 size="small" 
                 sx={{ mt: 1 }}
-                onClick={() => navigate(`/vehicles/${bill.customer.vehicleInfo.licensePlate}`)}
+                onClick={() => navigate(`/vehicles/${bill.customer?.vehicleInfo?.licensePlate || 'unknown'}`)}
                 className="no-print"
               >
                 View Service History
@@ -333,7 +332,7 @@ const BillDetails = () => {
           <Divider sx={{ mb: 3 }} />
           
           {/* Services */}
-          {bill.services.length > 0 && (
+          {bill.services && bill.services.length > 0 && (
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom>
                 Services
@@ -349,12 +348,12 @@ const BillDetails = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {bill.services.map((service) => (
-                      <TableRow key={service.id}>
-                        <TableCell>{service.name}</TableCell>
-                        <TableCell align="right">${service.price.toFixed(2)}</TableCell>
-                        <TableCell align="right">{service.quantity}</TableCell>
-                        <TableCell align="right">${(service.price * service.quantity).toFixed(2)}</TableCell>
+                    {bill.services.map((service, index) => (
+                      <TableRow key={service.id || index}>
+                        <TableCell>{service.name || 'Unknown Service'}</TableCell>
+                        <TableCell align="right">${(service.price || 0).toFixed(2)}</TableCell>
+                        <TableCell align="right">{service.quantity || 1}</TableCell>
+                        <TableCell align="right">${((service.price || 0) * (service.quantity || 1)).toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                     <TableRow>
@@ -363,7 +362,7 @@ const BillDetails = () => {
                       </TableCell>
                       <TableCell align="right">
                         <Typography variant="subtitle1">
-                          ${bill.services.reduce((sum, service) => sum + (service.price * service.quantity), 0).toFixed(2)}
+                          ${bill.services.reduce((sum, service) => sum + ((service.price || 0) * (service.quantity || 1)), 0).toFixed(2)}
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -374,7 +373,7 @@ const BillDetails = () => {
           )}
           
           {/* Products */}
-          {bill.products.length > 0 && (
+          {bill.products && bill.products.length > 0 && (
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom>
                 Products
@@ -390,12 +389,12 @@ const BillDetails = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {bill.products.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell>{product.name}</TableCell>
-                        <TableCell align="right">${product.price.toFixed(2)}</TableCell>
-                        <TableCell align="right">{product.quantity}</TableCell>
-                        <TableCell align="right">${(product.price * product.quantity).toFixed(2)}</TableCell>
+                    {bill.products.map((product, index) => (
+                      <TableRow key={product.id || index}>
+                        <TableCell>{product.name || 'Unknown Product'}</TableCell>
+                        <TableCell align="right">${(product.price || 0).toFixed(2)}</TableCell>
+                        <TableCell align="right">{product.quantity || 1}</TableCell>
+                        <TableCell align="right">${((product.price || 0) * (product.quantity || 1)).toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                     <TableRow>
@@ -404,7 +403,7 @@ const BillDetails = () => {
                       </TableCell>
                       <TableCell align="right">
                         <Typography variant="subtitle1">
-                          ${bill.products.reduce((sum, product) => sum + (product.price * product.quantity), 0).toFixed(2)}
+                          ${bill.products.reduce((sum, product) => sum + ((product.price || 0) * (product.quantity || 1)), 0).toFixed(2)}
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -420,7 +419,7 @@ const BillDetails = () => {
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <Typography variant="body1" gutterBottom>
-                <strong>Payment Method:</strong> {bill.paymentMethod.charAt(0).toUpperCase() + bill.paymentMethod.slice(1)}
+                <strong>Payment Method:</strong> {bill.paymentMethod ? (bill.paymentMethod.charAt(0).toUpperCase() + bill.paymentMethod.slice(1)) : 'Cash'}
               </Typography>
               {bill.notes && (
                 <>
@@ -441,18 +440,18 @@ const BillDetails = () => {
                   </Grid>
                   <Grid item xs={6}>
                     <Typography variant="body1" align="right">
-                      ${bill.subtotal.toFixed(2)}
+                      ${(bill.subtotal || 0).toFixed(2)}
                     </Typography>
                   </Grid>
                   
                   <Grid item xs={6}>
                     <Typography variant="body1">
-                      Tax ({(bill.taxRate * 100).toFixed(0)}%):
+                      Tax ({((bill.taxRate || 0) * 100).toFixed(0)}%):
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
                     <Typography variant="body1" align="right">
-                      ${bill.taxAmount.toFixed(2)}
+                      ${(bill.taxAmount || 0).toFixed(2)}
                     </Typography>
                   </Grid>
                   
@@ -463,7 +462,7 @@ const BillDetails = () => {
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant="body1" align="right" color="error">
-                          -${bill.discount.toFixed(2)}
+                          -${(bill.discount || 0).toFixed(2)}
                         </Typography>
                       </Grid>
                     </>
@@ -478,7 +477,7 @@ const BillDetails = () => {
                   </Grid>
                   <Grid item xs={6}>
                     <Typography variant="h6" align="right">
-                      ${bill.total.toFixed(2)}
+                      ${(bill.total || 0).toFixed(2)}
                     </Typography>
                   </Grid>
                 </Grid>
