@@ -168,6 +168,7 @@ const BillList = () => {
   
   // Format date
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleString();
   };
@@ -202,8 +203,13 @@ const BillList = () => {
       doc.text(`License Plate: ${bill.customer?.vehicleInfo?.licensePlate || 'N/A'}`, 20, y + 21);
       
       // Right column - Invoice info
-      doc.text(`Date: ${new Date(bill.createdAt || bill.date).toLocaleDateString()}`, 120, y);
-      doc.text(`Invoice #: ${bill.id.substring(0, 10)}`, 120, y + 7);
+      doc.text(`Date: ${formatDate(bill.createdAt || bill.date)}`, 120, y);
+      
+      // Safely handle bill ID which might be in different formats
+      const billId = bill._id || bill.id || 'Unknown';
+      const displayId = typeof billId === 'string' ? billId.substring(0, 10) : billId;
+      doc.text(`Invoice #: ${displayId}`, 120, y + 7);
+      
       doc.text(`Payment Method: ${bill.paymentMethod ? bill.paymentMethod.charAt(0).toUpperCase() + bill.paymentMethod.slice(1) : 'Cash'}`, 120, y + 14);
       
       // Add another line
@@ -246,7 +252,7 @@ const BillList = () => {
         bill.products.forEach(product => {
           doc.text(product.name || 'Product', 20, y);
           doc.text(`${product.quantity || 1}`, 130, y, { align: 'center' });
-          doc.text(`$${(product.price * (product.quantity || 1)).toFixed(2)}`, 170, y, { align: 'right' });
+          doc.text(`$${((product.price || 0) * (product.quantity || 1)).toFixed(2)}`, 170, y, { align: 'right' });
           y += 7;
         });
       } else {
@@ -261,22 +267,24 @@ const BillList = () => {
       
       // Totals
       doc.text('Subtotal:', 130, y);
-      doc.text(`$${bill.subtotal ? bill.subtotal.toFixed(2) : '0.00'}`, 170, y, { align: 'right' });
+      doc.text(`$${(bill.subtotal || 0).toFixed(2)}`, 170, y, { align: 'right' });
       y += 7;
       
+      // Handle tax (might be taxAmount in some bills and tax in others)
+      const taxAmount = bill.taxAmount || bill.tax || 0;
       doc.text('Tax:', 130, y);
-      doc.text(`$${bill.tax ? bill.tax.toFixed(2) : '0.00'}`, 170, y, { align: 'right' });
+      doc.text(`$${taxAmount.toFixed(2)}`, 170, y, { align: 'right' });
       y += 7;
       
       if (bill.discount) {
         doc.text('Discount:', 130, y);
-        doc.text(`$${bill.discount.toFixed(2)}`, 170, y, { align: 'right' });
+        doc.text(`$${(bill.discount || 0).toFixed(2)}`, 170, y, { align: 'right' });
         y += 7;
       }
       
       doc.setFont('helvetica', 'bold');
       doc.text('TOTAL:', 130, y);
-      doc.text(`$${bill.total ? bill.total.toFixed(2) : '0.00'}`, 170, y, { align: 'right' });
+      doc.text(`$${(bill.total || 0).toFixed(2)}`, 170, y, { align: 'right' });
       
       // Add notes if any
       if (bill.notes) {
@@ -293,7 +301,9 @@ const BillList = () => {
       doc.text('Thank you for your business!', 105, 280, { align: 'center' });
       
       // Save the PDF with a filename based on the bill ID
-      doc.save(`Invoice-${bill.id.substring(0, 10)}.pdf`);
+      const fileName = `Invoice-${displayId}.pdf`;
+      doc.save(fileName);
+      console.log('PDF generated successfully:', fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Error generating PDF. Please try again.');
@@ -466,7 +476,7 @@ const BillList = () => {
                         <IconButton 
                           size="small" 
                           color="primary"
-                          onClick={() => navigate(`/billing/${bill.id}`)}
+                          onClick={() => navigate(`/billing/${bill._id || bill.id}`)}
                         >
                           <VisibilityIcon />
                         </IconButton>
