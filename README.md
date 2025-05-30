@@ -41,31 +41,60 @@ A simplified web-based management system for service stations that streamlines d
 
 4. Access the application
    Open your browser and navigate to `http://localhost:3000`
-   - Create a `.env` file in the backend directory
-   - Add the following variables:
-     ```
-     PORT=5000
-     MONGODB_URI=mongodb://localhost:27017/service-station
-     JWT_SECRET=your_jwt_secret
-     ```
 
-5. Start the backend server
-   ```
-   cd ../backend
-   npm run dev
-   ```
+## Usage Guide
 
-6. Start the frontend development server
-   ```
-   cd ../frontend
-   npm start
-   ```
+### Dashboard
+The dashboard provides quick access to all main features of the application:
+- Create new bills
+- View existing bills
+- Manage services
+- Manage products
 
-## User Roles
-- **Admin**: Full access to all features
-- **Staff**: Can add services/products to bills
-- **Inventory Manager**: Manages stock levels
-- **Cashier**: View & generate bills only
+### Managing Services
+1. Navigate to the Services section
+2. Add new services with details like name, description, price, and duration
+3. Edit or delete existing services as needed
+
+### Managing Products
+1. Navigate to the Products section
+2. Add new products with details like name, description, price, and quantity
+3. Edit or delete existing products as needed
+
+### Creating Bills
+1. Navigate to the New Bill section
+2. Enter customer and vehicle information
+3. Add services and products to the bill
+4. Apply discounts if needed
+5. Select payment method
+6. Generate and save the bill
+
+### Viewing Bills
+1. Navigate to the Bills section
+2. View a list of all created bills
+3. Use filters to find specific bills
+4. Click on a bill to view details
+5. Generate PDF invoices for printing
+
+## Data Persistence
+This application uses browser localStorage for data persistence. This means:
+- All data is stored locally in your browser
+- Data will persist between sessions on the same browser
+- Data will NOT be shared between different browsers or devices
+- Clearing browser data will erase all application data
+
+## PDF Generation
+The application includes built-in PDF generation for bills and invoices using jsPDF. Generated PDFs include:
+- Customer and vehicle information
+- Itemized list of services and products
+- Price calculations including subtotal, tax, and discounts
+- Payment information
+
+## Simplified Authentication
+This application uses a simplified authentication system with localStorage. There are no complex user roles - anyone with access to the application can perform all operations.
+
+## Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
-MIT
+This project is licensed under the MIT License - see the LICENSE file for details.
