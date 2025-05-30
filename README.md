@@ -1,54 +1,46 @@
-# Smart Service Station Management System
+# Service Station Management System
 
 ## Overview
-A comprehensive web-based management system for service stations that streamlines daily operations including vehicle servicing, product sales, customer billing, inventory management, and report generation.
+A simplified web-based management system for service stations that streamlines daily operations including vehicle servicing, product sales, and customer billing. This system uses localStorage for data persistence, making it easy to set up and use without requiring a backend server.
 
 ## Core Features
-- Task & Product Management
+- Service Management
+- Product Management
 - Customer Billing System
-- Daily Report Generation
-- Inventory Management
-- Service History Tracking
-- Analytics Dashboard
-- User Role Management
-- Multi-Device Support
-- Data Backup & Export
-- Login & Security
+- Bill Generation and PDF Export
+- Dashboard with Quick Access
 
 ## Technology Stack
 - **Frontend**: React.js with Material-UI
-- **Backend**: Node.js with Express
-- **Database**: MongoDB
-- **Authentication**: JWT
+- **Data Storage**: Browser localStorage
 - **PDF Generation**: jsPDF
-- **Charts**: Chart.js
+- **State Management**: React Context API
 
 ## Installation
 
 ### Prerequisites
 - Node.js (v14 or higher)
-- MongoDB (v4 or higher)
 - npm or yarn
 
 ### Setup Instructions
 1. Clone the repository
    ```
-   git clone https://github.com/yourusername/Service-Station-Management-System.git
+   git clone https://github.com/kaltha34/Service-Station-Management-System.git
    ```
 
-2. Install dependencies for backend
+2. Install dependencies for frontend
    ```
-   cd Service-Station-Management-System/backend
+   cd Service-Station-Management-System/frontend
    npm install
    ```
 
-3. Install dependencies for frontend
+3. Start the application
    ```
-   cd ../frontend
-   npm install
+   npm start
    ```
 
-4. Configure environment variables
+4. Access the application
+   Open your browser and navigate to `http://localhost:3000`
    - Create a `.env` file in the backend directory
    - Add the following variables:
      ```
